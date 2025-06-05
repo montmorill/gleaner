@@ -1,0 +1,8 @@
+name = "proverzero"
+version = "0.1.0"
+
+[[lean_lib]]
+name = "Inductive"
+
+[[lean_lib]]
+name = "Structure"

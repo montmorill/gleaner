@@ -14,27 +14,15 @@ abbrev WithLogM (m : Type → Type) [Monad m] (logged : Type): Type → Type :=
 
 instance : Monad (WithLogM Option logged) where
   pure a := ⟨[], pure a⟩
-  bind m f := do
-    match m.val with
+  bind m f := match m.val with
     | none => ⟨m.log, none⟩
     | some x =>
-      let foo := f x
-      ⟨m.log ++ foo.log, foo.val⟩
+      let ⟨log, val⟩ := f x
+      ⟨m.log ++ log, val⟩
 
 instance : Monad (WithLogM (Except ε) logged) where
   pure a := ⟨[], pure a⟩
-  bind m f := do
-    match m.val with
+  bind m f := match m.val with
     | .error e => ⟨m.log, Except.error e⟩
-    | .ok x =>
-      let foo := f x
-      ⟨m.log ++ foo.log, foo.val⟩
-
-instance : Monad (WithLogM (StateM σ) logged) where
-  pure a := ⟨[], pure a⟩
-  bind m f := do
-    match m.val with
-    | .error e => ⟨m.log, Except.error e⟩
-    | .ok x =>
-      let foo := f x
-      ⟨m.log ++ foo.log, foo.val⟩
+    | .ok x => let ⟨log, val⟩ := f x
+      ⟨m.log ++ log, val⟩

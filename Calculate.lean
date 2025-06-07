@@ -31,6 +31,12 @@ def divide [Divide m] : Primitive m := open Divide in
 
 def choose : Primitive Many := ⟨"choose", Many.union⟩
 
+class Trace (m : Type → Type) extends Monad m where
+  trace : String → Int → m Int
+
+instance : Trace (Except String) where
+  trace _ x := pure x
+
 -- open Expr in
 -- #eval evaluateM (
 --   prim (trace times)

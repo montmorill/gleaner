@@ -1,8 +1,13 @@
 name = "proverzero"
 version = "0.1.0"
+defaultTargets = ["main"]
 
 [[lean_lib]]
 name = "Inductive"
 
 [[lean_lib]]
 name = "Structure"
+
+[[lean_exe]]
+name = "main"
+root = "Main"

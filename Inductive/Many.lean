@@ -45,3 +45,21 @@ def addsTo (goal : Nat) : List Nat → Many (List Nat)
     else Many.none) ++ addsTo goal xs
 
 #eval (addsTo 10 [1, 2, 3, 4, 5]).takeAll
+
+def Many.orElse : Many α → (Unit → Many α) → Many α
+  | .none, ys => ys ()
+  | .more x xs, ys => .more x (fun () => orElse (xs ()) ys)
+
+instance : Alternative Many where
+  failure := .none
+  orElse := Many.orElse
+
+def Many.countdown : Nat → Many Nat
+  | 0 => .none
+  | n + 1 => .more n (fun () => countdown n)
+
+def evenDivisors (n : Nat) : Many Nat := do
+  let k ← Many.countdown (n + 1)
+  guard (k % 2 = 0)
+  guard (n % k = 0)
+  pure k

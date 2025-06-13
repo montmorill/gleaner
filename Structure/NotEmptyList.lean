@@ -1,7 +1,6 @@
 structure NonEmptyList (α : Type) : Type where
   head : α
   tail : List α
-deriving Inhabited
 
 def NonEmptyList.toList  : NonEmptyList α → List α
   | ⟨head, tail⟩ => head :: tail
@@ -43,6 +42,9 @@ instance [ToString α] : ToString (NonEmptyList α) where
 instance : Coe (NonEmptyList α) (List α) where
   coe xs := xs.toList
 
+instance [Repr α] : Repr (NonEmptyList α) where
+  reprPrec xs prec := "!" ++ reprPrec xs.toList prec
+
 def idahoSpiders := NonEmptyList.fromList [
     "Banded Garden Spider",
     "Long-legged Sac Spider",
@@ -50,11 +52,3 @@ def idahoSpiders := NonEmptyList.fromList [
     "Hobo Spider",
     "Cat-faced Spider"
   ] (by decide)
-
-example : NonEmptyList String :=
-  { head := "Sparrow",
-    tail := ["Duck", "Swan", "Magpie", "Eurasian coot", "Crow"]
-  }
-
-example (n : Nat) (k : Nat) : Bool :=
-  n + k == k + n

@@ -5,8 +5,8 @@ deriving Repr
 
 instance [Append ε] : Functor (Validate ε) where
   map f
-   | .ok x => .ok (f x)
-   | .errors errs => .errors errs
+    | .ok x => .ok (f x)
+    | .errors errs => .errors errs
 
 instance [Append ε] : Applicative (Validate ε) where
   pure := .ok
@@ -35,4 +35,4 @@ instance [Append ε] : OrElse (Validate ε α) where
 def Validate.mapErrors [Append ε] [Append ε'] (val : Validate ε α) (f : ε → ε') : Validate ε' α :=
   match val with
   | .ok x => .ok x
-  | .errors errs => .errors (f errs)
+  | .errors errs =>.errors (f errs)

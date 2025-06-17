@@ -68,11 +68,11 @@ partial def dirTree (path : System.FilePath) : ConfigIO Unit := do
           (doList contents.toList fun d =>
             dirTree d.path)
 
-def usage : String :=
-  "Usage: doug [--ascii] [-a | --all]
+def usage : String :="\
+Usage: doug [--ascii] [-a | --all]
 Options:
-\t--ascii\tUse ASCII characters to display the directory structure
-\t-a,--all\tShow all entries including those starting with ."
+  --ascii   Use ASCII characters to display the directory structure
+  -a,--all  Show all entries including those starting with ."
 
 def main (args : List String) : IO UInt32 := do
   match configFromArgs args with

@@ -93,8 +93,7 @@ def indented (indent: String) : String → String
   | "" => ""
   | s => s.split (· == '\n')
     |>.map (s!"{indent}{·}")
-    |>.intersperse "\n"
-    |>.foldl (· ++ ·) ""
+    |> "\n".intercalate
 
 def report : TreeError → String
   | .field f msg => s!"{f}: {msg}"

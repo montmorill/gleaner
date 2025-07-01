@@ -1,6 +1,13 @@
-name = "proverzero"
+name = "gleaner"
 version = "0.1.0"
 defaultTargets = ["main"]
+
+# [[require]]
+# name = "mathlib"
+# scope = "leanprover-community"
+
+[[lean_lib]]
+name = "Application"
 
 [[lean_lib]]
 name = "Inductive"

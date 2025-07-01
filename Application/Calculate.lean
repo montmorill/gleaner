@@ -1,4 +1,5 @@
 import Inductive.Many
+import Structure.WithLog
 
 structure Primitive (m : Type → Type) [Monad m] where
   name : String
@@ -31,11 +32,11 @@ def divide [Divide m] : Primitive m := open Divide in
 
 def choose : Primitive Many := ⟨"choose", Many.union⟩
 
-class Trace (m : Type → Type) extends Monad m where
-  trace : String → Int → m Int
+-- class Trace (m : Type → Type) extends Monad m where
+--   trace : String → Int → m Int
 
-instance : Trace (Except String) where
-  trace _ x := pure x
+-- instance : Trace (Except String) where
+--   trace name x := pure x
 
 -- open Expr in
 -- #eval evaluateM (

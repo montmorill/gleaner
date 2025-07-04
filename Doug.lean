@@ -1,19 +1,27 @@
 structure Config where
+  indent : Nat := 2
   useASCII : Bool := false
   showAll : Bool := false
+  showFullPath : Bool := true
+  rootPaths : List String := []
   currentPrefix : String := ""
 
 def configFromArgs : List String → Option Config
   | [] => some {} -- every fields default
   | "--ascii" :: xs => ({· with useASCII := true}) <$> configFromArgs xs
-  | "-a" :: xs | "--all" :: xs => ({· with showAll := true}) <$> configFromArgs xs
-  | _ => none
+  | "--all" :: xs | "-a" :: xs => ({· with showAll := true}) <$> configFromArgs xs
+  | path :: xs => do
+    let config ← configFromArgs xs
+    pure {config with rootPaths := path :: config.rootPaths}
 
 def Config.preFile (cfg : Config) :=
-  if cfg.useASCII then "|--" else "├──"
+  if cfg.useASCII then
+    "|" ++ "".pushn '-' cfg.indent
+  else
+    "├" ++ "".pushn '─' cfg.indent
 
 def Config.preDir (cfg : Config) :=
-  if cfg.useASCII then "|  " else "│  "
+  (if cfg.useASCII then "|" else "│").pushn ' ' cfg.indent
 
 def Config.fileName (cfg : Config) (file : String) : String :=
   s!"{cfg.currentPrefix}{cfg.preFile} {file}"
@@ -22,14 +30,17 @@ def Config.dirName (cfg : Config) (dir : String) : String :=
   s!"{cfg.currentPrefix}{cfg.preFile} {dir}/"
 
 def Config.inDirectory (cfg : Config) : Config :=
-  {cfg with currentPrefix := cfg.preDir ++ " " ++ cfg.currentPrefix}
+  let newPrefix := s!"{cfg.preDir} {cfg.currentPrefix}"
+  {cfg with showFullPath := false, currentPrefix := newPrefix}
 
 inductive Entry where
   | file : String → Entry
   | dir : String → Entry
+deriving Repr
 
 def toEntry (path : System.FilePath) : IO (Option Entry) := do
-  match path.components.getLast? with
+  let components := path.components.reverse
+  match components[0]? with
   | none => pure (some (.dir ""))
   | some "." | some ".." => pure none
   | some name =>
@@ -41,10 +52,10 @@ instance [Monad m] : MonadReader ρ (ReaderT ρ m) where
   read := fun env => pure env
 
 def showFileName (file : String) : ConfigIO Unit := do
-  IO.println s!"{(← read).currentPrefix} {file}"
+  IO.println ((← read).fileName file)
 
 def showDirName (dir : String) : ConfigIO Unit := do
-  IO.println s!"{(← read).currentPrefix} {dir}/"
+  IO.println ((← read).dirName dir)
 
 def shouldShow (name : String) : ConfigIO Bool := do
   pure ((¬ name.startsWith ".") ∨ (← read).showAll)
@@ -62,14 +73,16 @@ partial def dirTree (path : System.FilePath) : ConfigIO Unit := do
       if ← shouldShow name then showFileName name
     | some (.dir name) =>
       if ← shouldShow name then
-        showDirName name
-        let contents ← path.readDir
+        if (← read).showFullPath then
+          IO.println s!" {path}/"
+        else
+          showDirName name
         withReader (·.inDirectory)
-          (doList contents.toList fun d =>
-            dirTree d.path)
+          (doList (← path.readDir).toList
+            (dirTree ·.path))
 
 def usage : String :="\
-Usage: doug [OPTION]...
+Usage: doug [OPTION]... [FILE]...
 
 Options:
   --ascii     Use ASCII characters to display the directory structure
@@ -78,7 +91,11 @@ Options:
 def main (args : List String) : IO UInt32 := do
   match configFromArgs args with
   | some config =>
-    (dirTree (← IO.currentDir)).run config
+    if config.rootPaths.isEmpty then
+      (dirTree (← IO.currentDir)).run config
+    else
+      doList config.rootPaths fun path => do
+        (dirTree (← IO.FS.realPath path)).run config
     pure 0
   | none =>
     IO.eprintln s!"Didn't understand argument(s) {" ".intercalate args}\n"

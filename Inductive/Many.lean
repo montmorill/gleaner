@@ -44,8 +44,6 @@ def addsTo (goal : Nat) : List Nat → Many (List Nat)
     then (x::·) <$> (addsTo (goal - x) xs)
     else Many.none) ++ addsTo goal xs
 
-#eval (addsTo 10 [1, 2, 3, 4, 5]).takeAll
-
 def Many.orElse : Many α → (Unit → Many α) → Many α
   | .none, ys => ys ()
   | .more x xs, ys => .more x (fun () => orElse (xs ()) ys)

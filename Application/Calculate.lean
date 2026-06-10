@@ -2,46 +2,40 @@ import Inductive.Many
 import Structure.WithLog
 
 structure Primitive (m : Type → Type) [Monad m] where
-  name : String
-  call : m Int → m Int → m Int
-inductive Expr (m : Type → Type) [Monad m] where
-  | const : Int                           → Expr m
-  | prim  : Primitive m → Expr m → Expr m → Expr m
+  label : String
+  run : m Int → m Int → m Int
 
-def evaluateM [Monad m] : Expr m → m Int
-  | Expr.const i         => pure i
-  | Expr.prim op x y => do op.call (evaluateM x) (evaluateM y)
+def plus  [Monad m] : Primitive m := ⟨"plus",  fun a b => do pure ((←a) + (←b))⟩
+def minus [Monad m] : Primitive m := ⟨"minus", fun a b => do pure ((←a) - (←b))⟩
+def times [Monad m] : Primitive m := ⟨"times", fun a b => do pure ((←a) * (←b))⟩
 
-def plain [Monad m] (f : Int → Int → Int) : m Int → m Int → m Int :=
-  fun x y => do pure (f (← x) (← y))
+class Divide (m : Type → Type) extends Monad m where
+  dividezero : Int → m Empty
 
-def plus  [Monad m] : Primitive m := ⟨"plus",  plain (· + ·)⟩
-def minus [Monad m] : Primitive m := ⟨"minus", plain (· - ·)⟩
-def times [Monad m] : Primitive m := ⟨"times", plain (· * ·)⟩
+instance : Divide Option where
+  dividezero _ := .none
 
-class Divide (m : Type → Type) extends Monad m where dividezero : Int → m Empty
-instance : Divide Option where dividezero _ := .none
-instance : Divide Many   where dividezero _ := .none
-instance : Divide (Except String) := ⟨(Except.error s!"Tried to divide {·} by zero")⟩
+instance : Divide Many where
+  dividezero _ := .none
 
-def divide [Divide m] : Primitive m := open Divide in
-  let inner := fun x y =>
-    if y == 0 then dividezero x >>= Empty.elim
-    else pure (x / y)
-  ⟨"divide", fun x y => do inner (← x) (← y)⟩
+instance : Divide (Except String) where
+  dividezero dividend := .error s!"Tried to divide {dividend} by zero"
 
-def choose : Primitive Many := ⟨"choose", Many.union⟩
+def divide [Divide m] : Primitive m :=
+  let aux : Int → Int → m Int
+    | x, 0 => Divide.dividezero x >>= Empty.elim
+    | x, y => pure (x / y)
+  ⟨"divide", fun a b => do aux (←a) (←b)⟩
 
--- class Trace (m : Type → Type) extends Monad m where
---   trace : String → Int → m Int
+-- def choose : Many Int → Many I→\->  := Many.union
 
--- instance : Trace (Except String) where
---   trace name x := pure x
+def trace [Monad m] (prim : Primitive m) :
+    Primitive (WithLogT' (String × m Int × m Int) m) :=
+  ⟨prim.label, fun a b =>
+    let res := prim.run a.val b.val
+    ⟨res, a.log ++ b.log ++ [(prim.label, a.val, b.val)]⟩⟩
 
--- open Expr in
--- #eval evaluateM (
---   prim (trace times)
---     (prim (trace plus) (const 1) (const 2))
---     (prim (trace minus) (const 3) (const 4))
--- )
---{ log := [(Prim.plus, 1, 2), (Prim.minus, 3, 4), (Prim.times, 3, -1)], val := -3 }
+#eval (times.run
+    ((trace plus).run (1 : Id Int) (2 : Id Int))
+    ((trace minus).run (3 : Id Int) (4 : Id Int))
+    : WithLog (String × Id Int × Id Int) (Id Int))

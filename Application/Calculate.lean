@@ -35,7 +35,7 @@ def trace [Monad m] (prim : Primitive m) :
     let res := prim.run a.val b.val
     ⟨res, a.log ++ b.log ++ [(prim.label, a.val, b.val)]⟩⟩
 
-#eval (times.run
-    ((trace plus).run (1 : Id Int) (2 : Id Int))
-    ((trace minus).run (3 : Id Int) (4 : Id Int))
-    : WithLog (String × Id Int × Id Int) (Id Int))
+#eval (let trace := trace (m := Id);
+    (times.run
+      ((trace plus).run (pure 1) (pure 2))
+      ((trace minus).run (pure 3) (pure 4))))

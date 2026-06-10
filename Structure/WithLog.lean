@@ -39,6 +39,9 @@ instance [Monad m] : Monad (WithLogT' logged m) where
 instance [Monad m] : MonadLift m (WithLogT' logged m) where
   monadLift action := ⟨action, []⟩
 
+instance [Monad m] [OfNat α n] : OfNat (WithLogT' logged m α) n where
+  ofNat := ⟨pure (OfNat.ofNat n), []⟩
+
 instance : Coe α (WithLog logged α) where
   coe action := ⟨action, []⟩
 

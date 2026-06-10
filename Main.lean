@@ -106,7 +106,6 @@ def main : IO Unit := do
   let name ← stdin.getLine
   println! "Please input your birth year (FIRM if a company): "
   let birthYear ← stdin.getLine
-  let input := {name, birthYear}
-  match checkLegacyInput input with
+  match checkLegacyInput {name, birthYear} with
   |.ok res => IO.println s!"Success: {repr res}"
   |.errors errs => IO.println s!"Errors:\n{report errs}"

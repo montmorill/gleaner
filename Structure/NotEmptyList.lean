@@ -45,10 +45,17 @@ instance : Coe (NonEmptyList α) (List α) where
 instance [Repr α] : Repr (NonEmptyList α) where
   reprPrec xs prec := "!" ++ reprPrec xs.toList prec
 
-def idahoSpiders := NonEmptyList.fromList [
+syntax "![" term,* "]" : term
+
+macro_rules
+  | `(![]) => Lean.Macro.throwError "NonEmptyList literal cannot be empty"
+  | `(![$x, $xs,*]) => `(NonEmptyList.mk $x [$xs,*])
+
+
+def idahoSpiders := ![
     "Banded Garden Spider",
     "Long-legged Sac Spider",
     "Wolf Spider",
     "Hobo Spider",
     "Cat-faced Spider"
-  ] (by decide)
+  ]

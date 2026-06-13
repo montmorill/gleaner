@@ -15,6 +15,9 @@ name = "Inductive"
 [[lean_lib]]
 name = "Structure"
 
+[[lean_lib]]
+name = "Meta"
+
 [[lean_exe]]
 name = "main"
 root = "Main"

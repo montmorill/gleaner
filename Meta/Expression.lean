@@ -34,13 +34,15 @@ def two := succ one
     mkAppN (.const ``Nat.add []) #[.bvar 1, .bvar 0]
   ) .default) .default
 
+def str : Expr := .const ``String []
+
 #check fun x => String.append "hello, " x
 #printExpr
-  .lam `x (.const ``String []) (
+  .lam `x str (
     mkAppN (.const ``String.append []) #[.lit (.strVal "hello "), .bvar 0]
   ) .default
 
-def prop : Expr := .sort Level.zero
+def prop : Expr := .sort 0
 
 #check ∀ x : Prop, x ∧ x
 #printExpr
@@ -51,5 +53,11 @@ def prop : Expr := .sort Level.zero
 #check Nat → String
 
 #check fun (p : Prop) => (λ hP : p => hP)
+#printExpr
+  .lam `p prop (
+    .lam `hP (.bvar 0) (.bvar 0) .default
+  ) .default
 
 #check Type 6
+#printExpr
+  .sort 7

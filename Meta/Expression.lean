@@ -1,7 +1,7 @@
 import Lean
 import Meta.PrintExpr
 
-open Lean
+open Lean Meta
 
 def nat : Expr := .const ``Nat []
 def zero := Expr.const ``Nat.zero []
@@ -55,7 +55,7 @@ def prop : Expr := .sort 0
 #check Nat → String
 -- The dependent arrow `(x : α) → β` is equivalent to `∀ x : α, β`.
 #printExpr
-  .forallE `_ nat str .default
+  .forallE Name.anonymous nat str .default
 
 #check fun (p : Prop) => (λ hP : p => hP)
 #printExpr

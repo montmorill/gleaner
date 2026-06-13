@@ -51,6 +51,9 @@ def prop : Expr := .sort 0
   ) .default
 
 #check Nat → String
+-- The dependent arrow `(x : α) → β` is equivalent to `∀ x : α, β`.
+#printExpr
+  .forallE `_ nat str .default
 
 #check fun (p : Prop) => (λ hP : p => hP)
 #printExpr

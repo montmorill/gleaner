@@ -21,6 +21,7 @@ def two := succ one
 #printExpr
   .lam `x nat (mkAppN (.const ``Nat.add []) #[one, .bvar 0]) .default
 
+-- TODO: replace `nat` with meta variable.
 #check fun a b c => (b * a) + c
 #printExpr
   .lam `a nat (.lam `b nat (.lam `c nat (
@@ -28,6 +29,7 @@ def two := succ one
       #[(mkAppN (.const ``Nat.mul []) #[.bvar 1, .bvar 2]), .bvar 0]
   ) .default) .default) .default
 
+-- TODO: replace `nat` with meta variable.
 #check fun x y => x + y
 #printExpr
   .lam `x nat (.lam `y nat (
